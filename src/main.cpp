@@ -10,8 +10,31 @@
 #include <cstdlib>
 #include <yaml-cpp/yaml.h>
 #include <curl/curl.h>
-
+#include <nlohmann/json.hpp>
 namespace fs = std::filesystem;
+using json = nlohmann::json;
+
+// Helper for downloading JSON content as string
+std::string download_text(const std::string& url) {
+    CURL* curl = curl_easy_init();
+    std::string result;
+
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](void* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
+            ((std::string*)userdata)->append((char*)ptr, size * nmemb);
+            return size * nmemb;
+        });
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &result);
+        CURLcode res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+
+        if (res != CURLE_OK) return "";
+    }
+
+    return result;
+}
 
 const std::string BASE_URL = "https://raw.githubusercontent.com/WheeLang/wheedb/main/packages/";
 const std::string TMP_DIR = "/tmp/wheeup";
@@ -117,13 +140,36 @@ void install_dependencies(const YAML::Node& deps) {
         std::string binlink = dep["binlink"].as<std::string>("");
 
         std::cout << "Installing dependency: " << name << std::endl;
-        std::string temp_path = TMP_DIR + "/" + binary;
-        std::string release_info = "$(curl -s " + source + ")"; // Simplified fallback
-        std::string url = source; // Should be resolved from JSON if dynamic
 
-        download_file(url, temp_path);
+        std::string json_str = download_text(source);
+        if (json_str.empty()) {
+            std::cerr << "Failed to fetch release info from: " << source << std::endl;
+            continue;
+        }
+
+        json release = json::parse(json_str);
+        std::string url;
+        for (const auto& asset : release["assets"]) {
+            if (asset["name"] == binary) {
+                url = asset["browser_download_url"];
+                break;
+            }
+        }
+
+        if (url.empty()) {
+            std::cerr << "Could not find binary " << binary << " in GitHub release.\n";
+            continue;
+        }
+
+        std::string temp_path = TMP_DIR + "/" + binary;
+        if (!download_file(url, temp_path)) {
+            std::cerr << "Failed to download binary from: " << url << std::endl;
+            continue;
+        }
+
         std::string cmd = "sudo cp " + temp_path + " " + location + "; sudo chmod +x " + location;
         std::system(cmd.c_str());
+
         if (!binlink.empty()) {
             cmd = "sudo ln -sf " + location + " " + binlink;
             std::system(cmd.c_str());
