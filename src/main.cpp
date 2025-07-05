@@ -134,45 +134,34 @@ void install_content(const YAML::Node& content) {
 void install_dependencies(const YAML::Node& deps) {
     for (const auto& dep : deps) {
         std::string name = dep["name"].as<std::string>();
-        std::string source = dep["source"].as<std::string>();
-        std::string binary = dep["binary"].as<std::string>();
+        std::string source = dep["source"].as<std::string>();   // Base URL (e.g., releases/latest)
+        std::string binary = dep["binary"].as<std::string>();   // binary filename
         std::string location = dep["location"].as<std::string>();
         std::string binlink = dep["binlink"].as<std::string>("");
 
         std::cout << "Installing dependency: " << name << std::endl;
 
-        std::string json_str = download_text(source);
-        if (json_str.empty()) {
-            std::cerr << "Failed to fetch release info from: " << source << std::endl;
-            continue;
-        }
+        // Construct full binary URL by concatenating source + "/" + binary
+        std::string full_url = source;
+        if (!source.empty() && source.back() != '/')
+            full_url += "/";
+        full_url += binary;
 
-        json release = json::parse(json_str);
-        std::string url;
-        for (const auto& asset : release["assets"]) {
-            if (asset["name"] == binary) {
-                url = asset["browser_download_url"];
-                break;
-            }
-        }
-
-        if (url.empty()) {
-            std::cerr << "Could not find binary " << binary << " in GitHub release.\n";
-            continue;
-        }
+        // Ensure the directory for the destination exists
+        fs::create_directories(fs::path(location).parent_path());
 
         std::string temp_path = TMP_DIR + "/" + binary;
-        if (!download_file(url, temp_path)) {
-            std::cerr << "Failed to download binary from: " << url << std::endl;
-            continue;
-        }
 
-        std::string cmd = "sudo cp " + temp_path + " " + location + "; sudo chmod +x " + location;
-        std::system(cmd.c_str());
-
-        if (!binlink.empty()) {
-            cmd = "sudo ln -sf " + location + " " + binlink;
+        if (download_file(full_url, temp_path)) {
+            std::string cmd = "sudo cp " + temp_path + " " + location + "; sudo chmod +x " + location;
             std::system(cmd.c_str());
+
+            if (!binlink.empty()) {
+                cmd = "sudo ln -sf " + location + " " + binlink;
+                std::system(cmd.c_str());
+            }
+        } else {
+            std::cerr << "Failed to download dependency " << name << " from " << full_url << std::endl;
         }
     }
 }
