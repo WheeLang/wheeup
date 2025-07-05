@@ -29,7 +29,7 @@ jobs:
       - name: Install Build Tools
         run: |
           sudo apt update
-          sudo apt install -y build-essential cmake g++ libyaml-cpp-dev libcurl4-openssl-dev nlohmann-json-dev
+          sudo apt install -y build-essential cmake g++ libyaml-cpp-dev libcurl4-openssl-dev nlohmann-json3-dev
 
       - name: Build with CMake
         run: |
