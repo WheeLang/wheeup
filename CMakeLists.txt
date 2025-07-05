@@ -16,6 +16,17 @@ endif()
 # Enable multithreading support
 find_package(Threads REQUIRED)
 
-# Define source files
+# Define requirements
+find_package(CURL REQUIRED)
+find_package(yaml-cpp REQUIRED)
+
+# Define source files and create executable
 add_executable(wheeup src/main.cpp)
-target_link_libraries(wheeup PRIVATE Threads::Threads)
+
+# Link libraries to the target
+target_link_libraries(wheeup
+    PRIVATE
+        Threads::Threads
+        CURL::libcurl
+        yaml-cpp
+)
