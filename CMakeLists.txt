@@ -24,9 +24,4 @@ find_package(yaml-cpp REQUIRED)
 add_executable(wheeup src/main.cpp)
 
 # Link libraries to the target
-target_link_libraries(wheeup
-    PRIVATE
-        Threads::Threads
-        CURL::libcurl
-        yaml-cpp
-)
+target_link_libraries(wheeup PRIVATE yaml-cpp curl nlohmann_json::nlohmann_json)
