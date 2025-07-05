@@ -54,6 +54,8 @@ bool download_file(const std::string& url, const std::string& output_path) {
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &out);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "wheeup/1.0");
 
     CURLcode res = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
