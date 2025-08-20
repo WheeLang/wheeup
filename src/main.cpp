@@ -36,8 +36,8 @@ std::string download_text(const std::string& url) {
     return result;
 }
 
-const std::string BASE_URL = "https://raw.githubusercontent.com/WheeLang/wheedb/main/packages/";
-const std::string TMP_DIR = "/tmp/wheeup";
+const std::string BASE_URL = "https://raw.githubusercontent.com/swinglang/swingdb/main/packages/";
+const std::string TMP_DIR = "/tmp/swingit";
 
 size_t write_data(void* ptr, size_t size, size_t nmemb, void* stream) {
     std::ofstream* out = static_cast<std::ofstream*>(stream);
