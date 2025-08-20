@@ -22,7 +22,7 @@ find_package(yaml-cpp REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 # Define source files and create executable
-add_executable(wheeup src/main.cpp)
+add_executable(swingit src/main.cpp)
 
 # Link libraries to the target
 target_link_libraries(wheeup PRIVATE yaml-cpp curl nlohmann_json::nlohmann_json)
