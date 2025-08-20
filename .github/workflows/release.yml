@@ -1,8 +1,11 @@
-name: 🐦 Release WheeUp
+name: 🐦 Release SwingIt
 
 on:
   release:
     types: [published]
+
+permissions:
+  contents: write
 
 jobs:
   checkout:
@@ -66,4 +69,4 @@ jobs:
         with:
           files: bin/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
