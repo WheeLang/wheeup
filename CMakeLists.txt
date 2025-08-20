@@ -25,4 +25,4 @@ find_package(nlohmann_json 3.2.0 REQUIRED)
 add_executable(swingit src/main.cpp)
 
 # Link libraries to the target
-target_link_libraries(wheeup PRIVATE yaml-cpp curl nlohmann_json::nlohmann_json)
+target_link_libraries(swingit PRIVATE yaml-cpp curl nlohmann_json::nlohmann_json)
